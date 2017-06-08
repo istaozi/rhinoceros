@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+</head>
+<body>
+<button onClick="hide(this,true);debug('hide button 1')"></button>
+<button onClick="hide(this);debug('hide button 2')"></button>
+<ul>
+    <li><img alt="001"></li>
+    <li><img alt="002"></li>
+    <li><img alt="003"></li>
+    <li><img alt="004"></li>
+    <li><img alt="005"></li>
+</ul>
+</body>
+<script src="debug.js"></script>
+<script src="hide.js"></script>
+<script>
+    function moveon() {
+        var answer=confirm("准备好了嘛？");
+        if(answer)window.location="https://www.baidu.com/";
+    }
+   // setTimeout(moveon,3000)
+
+    /****************************************************/
+
+   // debug("加油 你可以的");
+
+    /******************通过js操纵样式来隐藏元素e**********************************/
+
+    function hightlight(e){
+        if(!e.className) e.className="hilite";
+        else e.className+="hilite";
+    }
+    /*
+    *  可以通过JavaScript来操控web浏览器中的html内容和文档的css样式，同样，也可以通过事件处理程序来定义文档的行为。
+    * 事件处理程序是一个在浏览器中注册的JavaScript函数，当特定类型的事件发生时浏览器便调用这个函数。
+    * 通常我们关心的时间类型是鼠标点击事件和键盘按键事件，在智能手机中则是各种触碰事件。
+    * 党浏览器完成了文档的加载，党用户改变窗口大小 ，当用户向HTMl表单元素中输入数据时便会触发一个事件。
+    * */
+
+    /*
+    *
+    *
+    * */
+    window.onload=function(){ //当文档加载完成是执行这里的代码
+        var images=document.getElementsByTagName("img");
+        for(var i=0;i<images.length;i++){
+            var image=images[i];
+            if(image.addEventListener)
+                image.addEventListener("click",hide,false);
+            else image.attachEvent("click",hide); //兼容>=ie8
+        }
+
+        function hide(e){
+            console.log(e)
+            console.log(e.target)
+
+            e.target.style.visibility="hidden";
+
+        }
+    }
+</script>
+</html>

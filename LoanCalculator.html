@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>贷款计算器</title>
+    <style>
+        /*定义了程序输出的样式*/
+        .output{font-weight:bold;}
+        #payment{text-decoration:underline;}
+        #graph{border:solid #000 1px;}
+        th,td{vertical-align:top}
+    </style>
+</head>
+<body>
+<table>
+    <tr>
+        <th>输入贷款数据</th>
+        <td></td>
+        <th>贷款余额 累计股本 利息收益 </th>
+    </tr>
+    <tr>
+        <td>贷款金额（￥）:</td>
+        <td><input id="amount" onchange="calculate();"></td>
+        <td rowspan="8">
+            <canvas id="graph" width="400" height="250"></canvas>
+        </td>
+    </tr>
+    <tr>
+        <td>年利率（%）:</td>
+        <td><input id="apr" onchange="calculate()"></td>
+    </tr>
+    <tr>
+        <td>年度赔付（年）:</td>
+        <td><input id="years" onchange="calculate()"></td>
+    </tr>
+    <tr>
+        <td>放贷人:</td>
+        <td><input id="zipcode" onchange="calculate()"></td>
+    </tr>
+    <tr>
+        <th>计算支付金额:</th>
+        <td><button  onchange="calculate()">计算</button></td>
+    </tr>
+    <tr>
+        <th>每月支付金额:</th>
+        <td><span class="output" id="payment"></span></td>
+    </tr>
+    <tr>
+        <th>总共支付:</th>
+        <td><span class="output" id="total"></span></td>
+    </tr>
+    <tr>
+        <th>总共的利息:</th>
+        <td><span class="output" id="totalinterest"></span></td>
+    </tr>
+    <tr>
+        <th>赞助：</th>
+        <td colspan="2"><div id="lenders"></div></td>
+    </tr>
+</table>
+</body>
+<script>
+    /*
+     *将用户的输入保存至localStorage对象的属性中 ，这些属性在再次访问时还会继续保持在原位置
+     * 如果你直接在浏览器中按照file://url的方式打开本地文件，则在某些浏览器中无法使用存储功能 如Firefox，而通过http打开文件是可行的
+     */
+    function save(amount,apr,years,zipcode){
+        if(window.localStorage){ //如果浏览器支持
+            localStorage.loan_amount=amount;
+            localStorage.loan_apr=apr;
+            localStorage.loan_years=years;
+            localStorage.loan_zipcode=zipcode;
+        }
+    }
+    /*
+    *在文档首次加载时，将会尝试还原输入字段
+    **/
+    window.onload=function () {
+        if(window.localStorage&&localStorage.loan_amount){ //如果浏览器支持本地存储并且上次保存的值是存在的
+            document.getElementById("amount").value=localStorage.loan_amount;
+            document.getElementById("apr").value=localStorage.loan_apr;
+            document.getElementById("years").value=localStorage.loan_years;
+            document.getElementById("zipcode").value=localStorage.loan_zipcode;
+
+        }
+    }
+
+    /*
+    * 当用户的输入发送至服务器段脚本将返回一个本地放贷人的列表
+    *
+    */
+    function getLenders(amount,apr,years,zipcode) {
+        if(window.XMLHttpRequest) return;
+        var ad=document.getElementById("lenders");
+        if(!ad)return;
+        //将用户的输入数据进行url编码，并作为查询参数附加在url里
+        var url="getLeander.json"+"?amt="+encodeURIComponent(amount)+"?apr="+encodeURIComponent(apr)+"?years="+encodeURIComponent(years)+"?zipcode="+encodeURIComponent(zipcode);
+        //通过XMLHttpRequest对象来提取返回数据
+        var req=new  XMLHttpRequest();
+        req.open("GET",url);
+        req.send(null);
+        //在返回数据之前，注册了一个事件处理函数，这个处理函数将会在服务器的响应会会址客户端的时候调用，这种异步编程模型在客户端js中非常常见
+        req.onreadystatechange=function () {
+            if(req.readyState==4&&req.status==200){
+                var response=req.responseText;//http响应是以字符串的形式呈现的
+                var lender=JSON.parse(response);//将其解析为js数组
+
+                //将数组中的法代人对象转换为HTML字符串形式
+                var list="";
+                for(var i=0;i<lender.length;i++){
+                    list+="<li><a href='"+lender[i].url+"'>"+lender[i].name+"</a></li>"
+                }
+                ad.innerHTML="<ul>"+list+"</ul>"
+            }
+        }
+    }
+
+    function calculator(){
+        //查找元素中用于输入输出的元素
+        var amount=document.getElementById("amount"); //贷款金额
+        var apr=document.getElementById("apr");//年利息
+        var years=document.getElementById("years");//年度赔付率
+        var zipcode=document.getElementById("zipcode");//出借人
+        var payment=document.getElementById("payment");//每月支付
+        var total=document.getElementById("total");//总共支付
+        var totalinterest=document.getElementById("totalinterest");//总共的利息
+
+        var pricipal=parseFloat(amount.value);//贷款本金
+        var interest=parseFloat(apr.value)/100/12;//百分比转换成小数点，年利息转换成月利息
+        var payments=parseFloat(years.value)/12; //年度赔付转换为月度赔付
+
+        //计算月度赔付的数据
+        var x=Math.pow(1+interest,payments);
+        var monthly=(pricipal*x*interest)/(x-1);
+
+        if(isFinite(monthly)){ // 函数用于检查其参数是否是无穷大。
+            payment.innerHTML=monthly.toFixed(2);//小数点四舍五入到两位
+            total.innerHTML=(monthly*payments).toFixed(2);
+            totalinterest.innerHTML=((monthly*payments)-pricipal).toFixed(2);
+
+            //将用户输入的数据保存下来，这样下次方位时也能渠道数据
+           save(amount.value,apr.value,years.value,zipcode.value);
+           try {
+               getLenders(amount.value,apr.value,years.value,zipcode.value);
+           }catch (e){
+               chart(pricipal,interest,monthly,payments);
+           }
+
+        }else{
+            payment.innerHTML="";
+            total.innerHTML="";
+            totalinterest.innerHTML="";
+            chart();
+        }
+    }
+</script>
+</html>

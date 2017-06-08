@@ -120,8 +120,8 @@ var p=new Point(1,1); //平面几何中的点
 
 //通过给构造函数的prototype对象赋值来给Point对象定义方法
 Point.prototype.r=function () {
-    return Math.sqrt(this.x*this.x+this.y*this.y); //返回xy的平方根，this指代调动这个方法的对象
+    return M
+    ath.sqrt(this.x*this.x+this.y*this.y); //返回xy的平方根，this指代调动这个方法的对象
 }
 //Point的实例对象p 继承了方法r() 【所有的Point实例对象都会继承方法r()】
 p.r();
-
