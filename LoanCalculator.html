@@ -20,7 +20,7 @@
     </tr>
     <tr>
         <td>贷款金额（￥）:</td>
-        <td><input id="amount" onchange="calculate();"></td>
+        <td><input id="amount" onchange="calculate()"></td>
         <td rowspan="8">
             <canvas id="graph" width="400" height="250"></canvas>
         </td>
@@ -39,7 +39,7 @@
     </tr>
     <tr>
         <th>计算支付金额:</th>
-        <td><button  onchange="calculate()">计算</button></td>
+        <td><button onclick="calculate()">计算</button></td>
     </tr>
     <tr>
         <th>每月支付金额:</th>
@@ -115,7 +115,83 @@
         }
     }
 
-    function calculator(){
+    //在HTMl<canvas>元素中用图表只是你还月度贷款余额、利息和资产收益
+    function chart(principal,interest,monthly,payments) {
+        var graph=document.getElementById("graph");
+        graph.width=graph.width;//清除并重置画布
+        if(arguments.length==0||!graph.getContext)return;//如果不传入参数或者浏览器不支持画布，则直接返回
+        //获得画布元素的context对象， 这个对象定义了一组绘画api
+        var g=graph.getContext("2d");//所有回话都将基于这个对象
+        //获得画布大小
+        var width=graph.width;
+        var height=graph.height;
+        function paymentToX(n){
+            return n*width/payments;
+        }
+        function amountToY(a) {
+            return height-(a*height/(monthly*payments*1.05));
+        }
+
+        //付款数据时一条从(0 0)到(payments,mothly*paments)的直线
+        g.moveTo(paymentToX(0),amountToY(0));
+        g.lineTo(paymentToX(payments),amountToY(monthly*payments));
+        g.lineTo(paymentToX(payments),amountToY(0));
+        g.closePath();
+        g.fillStyle="#f88";
+        g.fill();
+        g.font="bold 12px 微软雅黑";
+        g.fillText("总利息",20,20);
+
+        var equity=0;
+        g.beginPath();
+        g.moveTo(paymentToX(0),amountToY(0));
+        for (var p=1;p<=payments;p++){
+            var thisMonthInterest=(principal-equity)*interest;
+            equity+=(monthly-thisMonthInterest);
+            g.lineTo(paymentToX(p),amountToY(equity));
+        }
+        g.lineTo(paymentToX(payments),amountToY(0));
+        g.closePath();
+        g.fillStyle="green";
+        g.fill();
+        g.fillText("总资产",20,35);
+
+        //再次循环余额显示为黑色粗线条
+        var bal=principal;
+        g.beginPath();
+        g.moveTo(paymentToX(0),amountToY(bal));
+        for (var p=1;p<=payments;p++){
+            var thisMonthsInterest=bal*interest;
+            bal-=(monthly-thisMonthInterest);//得到资产总额
+            g.lineTo(paymentToX(p),amountToY(bal))
+        }
+        g.lineWidth=3;
+        g.stroke();
+        g.fillStyle="black";
+        g.fillText("借款余额",20,50);
+
+        g.textAlign="center";
+        var y=amountToY(0);//y坐标设为0
+        for (var year=1;year*12<=payments;year++){
+            var x=paymentToX(year*12);
+            g.fillRect(x-0.5,y-3,1,3); //开始绘制
+            if(year==1)g.fillText("年",x,y-5);
+            if(year%5==0&&year*12!==payments)g.fillText(String(year),x,y-5);
+        }
+
+        //将赔付数额标记在右边界
+        g.textAlign="right";
+        g.textBaseline="middle";
+        var ticks=[monthly*payments,principal];
+        var rightEdge=paymentToX(payments);
+        for(var i=0;i<ticks.length;i++){
+            var y=amountToY(ticks[i]);
+            g.fillRect(rightEdge-3,y-0.5,3,1);
+            g.fillText(String(ticks[i].toFixed(0)),rightEdge-5,y);
+        }
+
+    }
+    function calculate(){
         //查找元素中用于输入输出的元素
         var amount=document.getElementById("amount"); //贷款金额
         var apr=document.getElementById("apr");//年利息
@@ -143,9 +219,10 @@
            try {
                getLenders(amount.value,apr.value,years.value,zipcode.value);
            }catch (e){
-               chart(pricipal,interest,monthly,payments);
-           }
+               console.info("==")
 
+           }
+            chart(pricipal,interest,monthly,payments);
         }else{
             payment.innerHTML="";
             total.innerHTML="";
