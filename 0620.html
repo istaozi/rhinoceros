@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="debug.js"></script>
+    <script src="对象的扩展.js"></script>
+</head>
+<body>
+
+
+</body>
+<script>
+    function keys(o) {
+        if (typeof o !== "object") throw TypeError;
+        var result = [];
+        for (var prop in o) {
+            if (o.hasOwnProperty(prop)) result.push(prop);
+        }
+        return result;
+    }
+    var ar = new Array();
+    ar.push(1, 2, 3, 4);
+    var objs = new Object({name: "1", name1: "11"});
+
+
+    console.log(keys(ar))
+    console.log(Object.keys({name: "1", name1: "11"}))
+    console.log(Object.getOwnPropertyNames({
+        name: "1", name1: "11", abc: function () {
+
+        }
+    }))
+    console.log(Object.getPrototypeOf(objs))
+    console.log(Object.prototype.toString.call(true))
+
+    /*===============es6 对象的扩展=======================*/
+    //属性的表达法
+
+    var name_es5={
+        name:"bar"
+    }
+
+    //写入定义好的变量和函数作为对象的属性和方法
+    var name='bar'; //定义变量
+    var names_es6={
+        name
+    } //写入到对象names_es6中，变量名作为对象的属性名，变量值作为对象的属性值
+    console.info("name_es6："+names_es6.name+"===="+"name_es5："+name_es5.name)
+
+    var name_es5={
+        name:"basr",
+        run:function(){
+            return name+"会跑啊";
+        }
+    }
+    var name_es6={
+        name,
+        run() {
+            return name+"会跑啊";
+        }
+    }
+    console.info("name_es6："+names_es6+"===="+"name_es5："+name_es5.run())
+
+
+</script>
+
+</html>
