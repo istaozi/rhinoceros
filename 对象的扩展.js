@@ -71,3 +71,4 @@ console.log(tag.a)
 for (var item in tag){
     console.log(item,tag[item])
 }
+
