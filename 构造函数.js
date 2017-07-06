@@ -110,7 +110,7 @@ function g() {
     var y="local";
     geval("y+='changed';"); //间接调用则使用全局对象作为其上下文作用域，并且无法读,写,定义局部变量和函数。
     return y;
-}
+}exte
 console.log(f(),x)
 console.log(g(),y)
 

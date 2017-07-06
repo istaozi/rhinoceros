@@ -74,3 +74,35 @@ function operator2(operation,arg1,arg2) {
         return operators[operation](arg1,arg2)
     }
 }
+
+var data=[1,1,3,5,5];
+var total=0;
+for(var i=0;i<data.length;i++)total+=data[i];
+var mean=total/data.length;
+
+//标准差，首先计算每个数据减去平均数之后偏差的平方然后求和
+
+total=0;
+for (var i=0;i<data.length;i++){
+    var deviation=data[i]-mean;
+    total+=deviation*deviation;
+}
+var stddev=Math.sqrt(total/(data.length-1))
+
+
+//使用数组方法map() reduce()同样可以实现计算
+var sum=function (x,y) {
+    return x+y;
+}
+
+var square=function (x) {
+    return x*x;
+}
+
+//然后将函数配合数组方法使用
+var data=[1,1,3,3,5];
+var mean=data.reduce(sum)/data.length;
+var  deviations=data.map(function (x) {
+    return x-mean
+})
+
